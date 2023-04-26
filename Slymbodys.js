@@ -1,62 +1,97 @@
 class ProductManager {
   constructor() {
-    this.products = []; // arreglo vacío para almacenar los productos
-    this.productIdCounter = 1; // contador para asignar un id autoincrementable a cada producto
+    this.products = [];
   }
 
-  // método para agregar un nuevo producto al arreglo
-  addProduct(title, description, price, thumbnail, code, stock) {
-    // validar que todos los campos sean obligatorios
-    if (!title || !description || !price || !thumbnail || !code || !stock) {
-      throw new Error('Todos los campos son obligatorios');
+  addProduct(product) {
+    // Generar una identificación única
+    let id = 1;
+    while (this.products.some((p) => p.id === id)) {
+      id++;
     }
-    // validar que no se repita el campo "code"
-    if (this.products.some(product => product.code === code)) {
-      throw new Error('Ya existe un producto con ese código identificador');
+    product.id = id;
+
+    // Comprobar si el código ya existe
+    if (this.products.some((p) => p.code === product.code)) {
+      throw new Error('Code already exists');
     }
-    // crear un nuevo producto con un id autoincrementable y agregarlo al arreglo
-    const newProduct = { id: this.productIdCounter++, title, description, price, thumbnail, code, stock };
-    this.products.push(newProduct);
-    return newProduct;
+
+    this.products.push(product);
   }
 
-  // método para buscar un producto por su código identificador
-  findProduct(code) {
-    return this.products.find(product => product.code === code);
+  getProductByCode(code) {
+    const product = this.products.find((p) => p.code === code);
+    if (!product) {
+      console.log('Not found');
+    }
+    return product;
   }
 
-  // método para actualizar el stock de un producto
+  getProductById(id) {
+    const product = this.products.find((p) => p.id === id);
+    if (!product) {
+      throw new Error('Not found');
+    }
+    return product;
+  }
+
   updateStock(code, newStock) {
-    const product = this.findProduct(code);
-    if (product) {
-      product.stock = newStock;
-      return true;
+    const product = this.getProductByCode(code);
+    if (!product) {
+      return false;
     }
-    return false;
+    product.stock = newStock;
+    return true;
   }
 
-  // método para eliminar un producto del arreglo
-  removeProduct(code) {
-    const index = this.products.findIndex(product => product.code === code);
-    if (index !== -1) {
-      this.products.splice(index, 1);
-      return true;
+  removeProductByCode(code) {
+    const index = this.products.findIndex((p) => p.code === code);
+    if (index === -1) {
+      return false;
     }
-    return false;
+    this.products.splice(index, 1);
+    return true;
   }
 
-  // método para devolver el arreglo con todos los productos creados hasta ese momento
+  getProductsByPriceAsc() {
+    return this.products.slice().sort((a, b) => a.price - b.price);
+  }
+
   getProducts() {
     return this.products;
   }
+}
 
-  // método para buscar un producto por su id
-  getProductById(id) {
-    const product = this.products.find(product => product.id === id);
-    if (product) {
-      return product;
-    }
-    console.error('Not found');
-    return null;
-  }
+// Crear una nueva instancia de ProductManager
+const productManager = new ProductManager();
+
+// Obtenga la lista inicial de productos (debe estar vacía)
+console.log(productManager.getProducts()); // []
+
+// Agregar un producto
+productManager.addProduct({
+  title: 'Producto prueba',
+  description: 'Este es un producto de prueba',
+  price: 200,
+  thumbnail: 'Sin imagen',
+  code: 'abc123',
+  stock: 25
+});
+
+// Obtenga la lista actualizada de productos (debe contener el nuevo producto)
+console.log(productManager.getProducts());
+
+// Intente agregar el mismo producto nuevamente (debería arrojar un error)
+try {
+  productManager.addProduct({
+    title: 'Producto prueba',
+    description: 'Este es un producto de prueba',
+    price: 200,
+    thumbnail: 'Sin imagen',
+    code: 'abc123',
+    stock: 25
+  });
+} catch (e) {
+  console.log(e.message); 
+  // El código ya existe
 }
